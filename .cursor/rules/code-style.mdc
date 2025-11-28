@@ -32,6 +32,19 @@ Remember: The priority is to maintain code quality and prevent bad code from ent
 - Implement proper type safety and inference
 - Use `satisfies` operator for type validation
 
+### Tailwind CSS Styling
+
+- **Always prefer Tailwind classes over inline styles** unless it requires a complicated implementation
+- Use Tailwind utility classes for spacing, colors, typography, borders, shadows, and layout
+- Leverage Tailwind's opacity modifiers (e.g., `bg-white/20`, `text-primary/60`)
+- Use conditional Tailwind classes with template literals for dynamic styling
+- Only use inline `style` attributes for:
+  - Dynamic values that require calculations (e.g., `width: ${calculatedValue}%`)
+  - Complex CSS variables that don't map cleanly to Tailwind utilities
+  - CSS properties not available in Tailwind (use sparingly)
+- Prefer Tailwind's theme colors (e.g., `bg-card-bg`, `text-primary`) over CSS variable references in inline styles
+- Use Tailwind spacing scale (`p-4`, `mt-2`, `gap-6`) instead of pixel values in inline styles
+
 ## React 19 and Next.js 15 Best Practices
 
 ### Component Architecture

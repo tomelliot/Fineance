@@ -1,0 +1,252 @@
+{
+  "type": "object",
+  "properties": {
+    "transactions": {
+      "type": "array",
+      "description": "List of financial transactions",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique transaction identifier"
+          },
+          "date": {
+            "type": "string",
+            "description": "Transaction date in YYYY-MM-DD format"
+          },
+          "description": {
+            "type": "string",
+            "description": "Transaction description"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Transaction amount (negative for expenses, positive for income)"
+          },
+          "category": {
+            "type": "string",
+            "description": "Transaction category"
+          },
+          "account": {
+            "type": "string",
+            "description": "Account name"
+          },
+          "type": {
+            "type": "string",
+            "description": "Transaction type: debit or credit"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Associated tags"
+          },
+          "merchant": {
+            "type": ["object", "null"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "description",
+          "amount",
+          "category",
+          "account",
+          "type"
+        ]
+      }
+    },
+    "accounts": {
+      "type": "array",
+      "description": "List of financial accounts",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Account type: checking, savings, credit_card, investment"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "credit_limit": {
+            "type": "number",
+            "description": "Credit limit for credit card accounts"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "institution": {
+            "type": "string"
+          },
+          "last_updated": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "balance", "currency", "institution"]
+      }
+    },
+    "budgets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "monthly_limit": {
+            "type": "number"
+          },
+          "spent": {
+            "type": "number"
+          },
+          "remaining": {
+            "type": "number"
+          },
+          "period": {
+            "type": "string",
+            "description": "Budget period in YYYY-MM format"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "monthly_limit",
+          "spent",
+          "remaining",
+          "period"
+        ]
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "Category type: expense or income"
+          },
+          "parent": {
+            "type": ["string", "null"]
+          },
+          "icon": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "type", "icon", "color"]
+      }
+    },
+    "recurring_transactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "category": {
+            "type": "string"
+          },
+          "account": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string",
+            "description": "Frequency: daily, weekly, monthly, yearly"
+          },
+          "next_date": {
+            "type": "string"
+          },
+          "auto_pay": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "amount",
+          "category",
+          "frequency",
+          "next_date"
+        ]
+      }
+    },
+    "financial_goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target_amount": {
+            "type": "number"
+          },
+          "current_amount": {
+            "type": "number"
+          },
+          "deadline": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status: not_started, in_progress, completed"
+          },
+          "monthly_contribution": {
+            "type": "number"
+          }
+        },
+        "required": ["id", "name", "target_amount", "current_amount", "status"]
+      }
+    }
+  },
+  "required": [
+    "transactions",
+    "accounts",
+    "budgets",
+    "categories",
+    "recurring_transactions",
+    "financial_goals"
+  ]
+}

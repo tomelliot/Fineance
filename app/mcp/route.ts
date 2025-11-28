@@ -1,6 +1,7 @@
 import { baseURL } from "@/baseUrl";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
+import { getCategoryTrends } from "@/services/categories";
 
 export const revalidate = 0;
 
@@ -128,6 +129,92 @@ const handler = createMcpHandler(async (server) => {
           timestamp: new Date().toISOString(),
         },
         _meta: widgetMeta(healthWidget),
+      };
+    }
+  );
+
+  // Category Trends Widget
+  const categoryTrendsWidgetHtml = await getAppsSdkCompatibleHtml(
+    baseURL,
+    "/mcp-components/category-trends"
+  );
+
+  const categoryTrendsWidget: ContentWidget = {
+    id: "category-trends",
+    title: "Category Trends",
+    templateUri: "ui://widget/category-trends-template.html",
+    invoking: "Analyzing category spending trends...",
+    invoked: "Category trends analysis complete",
+    html: categoryTrendsWidgetHtml,
+    description:
+      "Display spending trends for categories with historical comparisons",
+    widgetDomain: baseURL,
+  };
+
+  server.registerResource(
+    "category-trends-widget",
+    categoryTrendsWidget.templateUri,
+    {
+      title: categoryTrendsWidget.title,
+      description: categoryTrendsWidget.description,
+      mimeType: "text/html+skybridge",
+      _meta: {
+        "openai/widgetDescription": categoryTrendsWidget.description,
+        "openai/widgetPrefersBorder": false,
+      },
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "text/html+skybridge",
+          text: `<html>${categoryTrendsWidget.html}</html>`,
+          _meta: {
+            "openai/widgetDescription": categoryTrendsWidget.description,
+            "openai/widgetPrefersBorder": false,
+            "openai/widgetDomain": categoryTrendsWidget.widgetDomain,
+          },
+        },
+      ],
+    })
+  );
+
+  // Register get_category_trends tool
+  server.registerTool(
+    "get_category_trends",
+    {
+      title: "Get Category Trends",
+      description:
+        "Get spending trends for one or more categories with standardized comparisons (last period, same period last quarter, same period last year)",
+      inputSchema: z.object({
+        category_id: z
+          .string()
+          .optional()
+          .describe("Specific category ID, or omit to return all categories"),
+        period: z
+          .enum(["month", "quarter"])
+          .default("month")
+          .optional()
+          .describe("Period type: month or quarter (default: month)"),
+      }),
+      _meta: widgetMeta(categoryTrendsWidget),
+    },
+    async ({ category_id, period = "month" }) => {
+      console.log(`[TOOL] get_category_trends`, { category_id, period });
+      const trends = getCategoryTrends(category_id, period);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Category trends: ${trends.length} category${
+              trends.length !== 1 ? "ies" : ""
+            } found`,
+          },
+        ],
+        structuredContent: {
+          trends,
+        },
+        _meta: widgetMeta(categoryTrendsWidget),
       };
     }
   );
