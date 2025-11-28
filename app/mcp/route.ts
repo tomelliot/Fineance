@@ -1,7 +1,7 @@
 import { baseURL } from "@/baseUrl";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
-import { getCategoryTrends } from "@/services/categories";
+import { getCategoryTrends, findSpendingOutliers } from "@/services/categories";
 
 export const revalidate = 0;
 
@@ -215,6 +215,113 @@ const handler = createMcpHandler(async (server) => {
           trends,
         },
         _meta: widgetMeta(categoryTrendsWidget),
+      };
+    }
+  );
+
+  // Spending Outliers Widget
+  const spendingOutliersWidgetHtml = await getAppsSdkCompatibleHtml(
+    baseURL,
+    "/mcp-components/spending-outliers"
+  );
+
+  const spendingOutliersWidget: ContentWidget = {
+    id: "spending-outliers",
+    title: "Spending Outliers",
+    templateUri: "ui://widget/spending-outliers-template.html",
+    invoking: "Identifying spending outliers...",
+    invoked: "Spending outliers analysis complete",
+    html: spendingOutliersWidgetHtml,
+    description:
+      "Display categories with unusual spending patterns compared to their trailing 4-period average",
+    widgetDomain: baseURL,
+  };
+
+  server.registerResource(
+    "spending-outliers-widget",
+    spendingOutliersWidget.templateUri,
+    {
+      title: spendingOutliersWidget.title,
+      description: spendingOutliersWidget.description,
+      mimeType: "text/html+skybridge",
+      _meta: {
+        "openai/widgetDescription": spendingOutliersWidget.description,
+        "openai/widgetPrefersBorder": false,
+      },
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "text/html+skybridge",
+          text: `<html>${spendingOutliersWidget.html}</html>`,
+          _meta: {
+            "openai/widgetDescription": spendingOutliersWidget.description,
+            "openai/widgetPrefersBorder": false,
+            "openai/widgetDomain": spendingOutliersWidget.widgetDomain,
+          },
+        },
+      ],
+    })
+  );
+
+  // Register find_spending_outliers tool
+  server.registerTool(
+    "find_spending_outliers",
+    {
+      title: "Find Spending Outliers",
+      description:
+        "Identify categories with unusual spending patterns (increases or decreases) compared to their trailing 4-period average",
+      inputSchema: z.object({
+        period: z
+          .enum(["month", "quarter"])
+          .default("month")
+          .optional()
+          .describe("Period type: month or quarter (default: month)"),
+        direction: z
+          .enum(["increase", "decrease", "both"])
+          .default("both")
+          .optional()
+          .describe(
+            "Direction of outliers to find: increase, decrease, or both (default: both)"
+          ),
+        threshold_percent: z
+          .number()
+          .optional()
+          .describe(
+            "Minimum change percentage to be considered an outlier (default: 20)"
+          ),
+      }),
+      _meta: widgetMeta(spendingOutliersWidget),
+    },
+    async ({
+      period = "month",
+      direction = "both",
+      threshold_percent = 20,
+    }) => {
+      console.log(`[TOOL] find_spending_outliers`, {
+        period,
+        direction,
+        threshold_percent,
+      });
+      const outliers = findSpendingOutliers(
+        period,
+        direction,
+        threshold_percent
+      );
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Found ${outliers.length} spending outlier${
+              outliers.length !== 1 ? "s" : ""
+            }`,
+          },
+        ],
+        structuredContent: {
+          outliers,
+        },
+        _meta: widgetMeta(spendingOutliersWidget),
       };
     }
   );

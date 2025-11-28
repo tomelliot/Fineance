@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { Transaction, FinanceData } from "./finance-data";
+import { Transaction, FinanceData, loadFinanceData } from "./finance-data";
 
 export interface TrendComparison {
   current: number;
@@ -35,6 +35,20 @@ export interface CategoryTrend {
   status?: "over" | "under" | "on_target";
 }
 
+export interface SpendingOutlier {
+  categoryId: string;
+  categoryName: string;
+  period: string; // YYYY-MM or YYYY-Q format
+  currentPeriodSpending: number;
+  trailingAverage: number; // Average of trailing 4 periods
+  change: {
+    amount: number;
+    percent: number; // 0 decimal places
+    direction: "increase" | "decrease";
+  };
+  spendingTrend: TrendComparison; // Required standardized comparison
+}
+
 interface Budget {
   id: string;
   category: string;
@@ -54,7 +68,7 @@ function loadFinanceDataWithBudgets(): FinanceData & { budgets: Budget[] } {
   return JSON.parse(fileContents) as FinanceData & { budgets: Budget[] };
 }
 
-function getPeriodKey(date: Date, periodType: "month" | "quarter"): string {
+export function getPeriodKey(date: Date, periodType: "month" | "quarter"): string {
   if (periodType === "month") {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
   } else {
@@ -63,7 +77,7 @@ function getPeriodKey(date: Date, periodType: "month" | "quarter"): string {
   }
 }
 
-function getPeriodStartEnd(
+export function getPeriodStartEnd(
   periodKey: string,
   periodType: "month" | "quarter"
 ): { start: Date; end: Date } {
@@ -81,7 +95,7 @@ function getPeriodStartEnd(
   }
 }
 
-function getPreviousPeriod(
+export function getPreviousPeriod(
   periodKey: string,
   periodType: "month" | "quarter"
 ): string {
@@ -98,7 +112,7 @@ function getPreviousPeriod(
   }
 }
 
-function getSamePeriodLastQuarter(
+export function getSamePeriodLastQuarter(
   periodKey: string,
   periodType: "month" | "quarter"
 ): string {
@@ -117,7 +131,7 @@ function getSamePeriodLastQuarter(
   }
 }
 
-function getSamePeriodLastYear(
+export function getSamePeriodLastYear(
   periodKey: string,
   periodType: "month" | "quarter"
 ): string {
@@ -304,6 +318,125 @@ export function getCategoryTrends(
   // Sort by current spending (descending)
   return trends.sort(
     (a, b) => b.spendingTrend.current - a.spendingTrend.current
+  );
+}
+
+function calculateTrailingAverage(
+  categoryId: string,
+  currentPeriod: string,
+  periodType: "month" | "quarter",
+  transactions: Transaction[]
+): number {
+  // Get spending for last 4 periods (previous period, 2 periods ago, 3 periods ago, 4 periods ago)
+  const periods: string[] = [];
+  let periodKey = currentPeriod;
+  
+  for (let i = 0; i < 4; i++) {
+    periodKey = getPreviousPeriod(periodKey, periodType);
+    periods.push(periodKey);
+  }
+  
+  const spendingAmounts = periods.map((period) =>
+    calculatePeriodSpending(period, periodType, categoryId, transactions)
+  );
+  
+  // Calculate average of the 4 periods
+  const sum = spendingAmounts.reduce((acc, val) => acc + val, 0);
+  return sum / 4;
+}
+
+export function findSpendingOutliers(
+  periodType: "month" | "quarter" = "month",
+  direction: "increase" | "decrease" | "both" = "both",
+  thresholdPercent: number = 20
+): SpendingOutlier[] {
+  const data = loadFinanceData();
+  const today = new Date("2025-10-31"); // Most recent transaction date
+  const currentPeriod = getPeriodKey(today, periodType);
+
+  // Create category map for lookup
+  const categoryMap = new Map<string, string>();
+  data.categories.forEach((cat) => {
+    categoryMap.set(cat.id, cat.name);
+  });
+
+  const outliers: SpendingOutlier[] = [];
+
+  // Process each category
+  for (const [categoryId, categoryName] of categoryMap.entries()) {
+    // Calculate current period spending
+    const currentPeriodSpending = calculatePeriodSpending(
+      currentPeriod,
+      periodType,
+      categoryId,
+      data.transactions
+    );
+
+    // Calculate trailing 4-period average
+    const trailingAverage = calculateTrailingAverage(
+      categoryId,
+      currentPeriod,
+      periodType,
+      data.transactions
+    );
+
+    // Skip if no historical data (trailing average is 0 and current is 0)
+    if (trailingAverage === 0 && currentPeriodSpending === 0) {
+      continue;
+    }
+
+    // Calculate change
+    const changeAmount = currentPeriodSpending - trailingAverage;
+    
+    // Calculate percentage change (0 decimal places)
+    let percentChange: number;
+    if (trailingAverage === 0) {
+      // If no historical spending, treat as 100% increase if current > 0
+      percentChange = currentPeriodSpending > 0 ? 100 : 0;
+    } else {
+      percentChange = Math.round((changeAmount / trailingAverage) * 100);
+    }
+
+    // Determine direction
+    const changeDirection: "increase" | "decrease" =
+      changeAmount >= 0 ? "increase" : "decrease";
+
+    // Filter by direction parameter
+    if (direction !== "both" && changeDirection !== direction) {
+      continue;
+    }
+
+    // Filter by threshold (only include if absolute percentage change >= threshold)
+    if (Math.abs(percentChange) < thresholdPercent) {
+      continue;
+    }
+
+    // Calculate spending trend comparison for the current period
+    const spendingTrend = calculateTrendComparison(
+      currentPeriod,
+      periodType,
+      categoryId,
+      data.transactions
+    );
+
+    outliers.push({
+      categoryId,
+      categoryName,
+      period: currentPeriod,
+      currentPeriodSpending,
+      trailingAverage,
+      change: {
+        amount: changeAmount,
+        percent: percentChange,
+        direction: changeDirection,
+      },
+      spendingTrend,
+    });
+  }
+
+  // Sort by absolute percentage change (descending) to show most significant outliers first
+  return outliers.sort(
+    (a, b) => Math.abs(b.change.percent) - Math.abs(a.change.percent)
   );
 }
 
