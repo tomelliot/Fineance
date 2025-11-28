@@ -15,4 +15,3 @@ export default function SpendingOutliersPage() {
 
   return <SpendingOutliers outliers={props.outliers} />;
 }
-

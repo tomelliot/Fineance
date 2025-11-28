@@ -1,5 +1,22 @@
 # Style Guide
 
+## Typography
+
+- **Heading Font**: Boldonse
+  - A bold, distinctive display typeface with strong character
+  - Used for all headings (h1-h6) to create a striking visual presence
+  - Available weight: 400 (Regular)
+  - The bold, confident forms complement the neumorphic design aesthetic
+
+- **Body Font**: Bricolage Grotesque
+  - A distinctive geometric sans-serif used for all body text and UI elements
+  - Available weights: 200 (ExtraLight), 400 (Regular), 600 (SemiBold), 800 (ExtraBold)
+  - Use weight extremes for hierarchy: 200 for light text, 800 for bold emphasis
+  - Base weight: 400 for body text
+  - Creates excellent readability while maintaining visual interest
+
+- Both fonts are loaded via Next.js Google Fonts optimization for optimal performance
+
 ## Color Palette
 
 - **Primary Accent**: Purple `#534271`

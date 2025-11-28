@@ -56,8 +56,8 @@
   --color-border: var(--border);
   --color-input-value: var(--input-value);
   --color-input-label: var(--input-label);
-  --font-display: var(--font-display);
-  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading, "Boldonse", sans-serif);
+  --font-body: var(--font-body, "Bricolage Grotesque", sans-serif);
   --animate-fade-in-up: fadeInUp 0.8s ease-out;
   --animate-stagger: fadeInUp 0.6s ease-out;
 }
@@ -66,7 +66,19 @@ body {
   background: linear-gradient(to bottom right, #534271, #71426b);
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body);
+  font-weight: 400;
   min-height: 100vh;
   position: relative;
+}
+
+/* Heading styles using Boldonse */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
 }
