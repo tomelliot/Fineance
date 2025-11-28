@@ -2,6 +2,7 @@ import { baseURL } from "@/baseUrl";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { getCategoryTrends, findSpendingOutliers } from "@/services/categories";
+import { getMonthlySnapshot } from "@/services/snapshots";
 
 export const revalidate = 0;
 
@@ -215,6 +216,91 @@ const handler = createMcpHandler(async (server) => {
           trends,
         },
         _meta: widgetMeta(categoryTrendsWidget),
+      };
+    }
+  );
+
+  // Monthly Snapshot Widget
+  const monthlySnapshotWidgetHtml = await getAppsSdkCompatibleHtml(
+    baseURL,
+    "/mcp-components/monthly-snapshot"
+  );
+
+  const monthlySnapshotWidget: ContentWidget = {
+    id: "monthly-snapshot",
+    title: "Monthly Snapshot",
+    templateUri: "ui://widget/monthly-snapshot-template.html",
+    invoking: "Calculating monthly financial snapshot...",
+    invoked: "Monthly snapshot ready",
+    html: monthlySnapshotWidgetHtml,
+    description:
+      "Display current month financial overview with income, spending, and trend comparisons",
+    widgetDomain: baseURL,
+  };
+
+  server.registerResource(
+    "monthly-snapshot-widget",
+    monthlySnapshotWidget.templateUri,
+    {
+      title: monthlySnapshotWidget.title,
+      description: monthlySnapshotWidget.description,
+      mimeType: "text/html+skybridge",
+      _meta: {
+        "openai/widgetDescription": monthlySnapshotWidget.description,
+        "openai/widgetPrefersBorder": false,
+      },
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "text/html+skybridge",
+          text: `<html>${monthlySnapshotWidget.html}</html>`,
+          _meta: {
+            "openai/widgetDescription": monthlySnapshotWidget.description,
+            "openai/widgetPrefersBorder": false,
+            "openai/widgetDomain": monthlySnapshotWidget.widgetDomain,
+          },
+        },
+      ],
+    })
+  );
+
+  // Register get_monthly_snapshot tool
+  server.registerTool(
+    "get_monthly_snapshot",
+    {
+      title: "Get Monthly Snapshot",
+      description:
+        "Get current month financial overview with income vs. spending, money left to spend, largest spending category, and standardized trend comparisons",
+      inputSchema: z.object({
+        month: z
+          .string()
+          .optional()
+          .describe("Month in YYYY-MM format, defaults to current month"),
+      }),
+      _meta: widgetMeta(monthlySnapshotWidget),
+    },
+    async ({ month }) => {
+      console.log(`[TOOL] get_monthly_snapshot`, { month });
+      const snapshot = getMonthlySnapshot(month);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Monthly snapshot for ${
+              snapshot.month
+            }: Income ${snapshot.income.toFixed(
+              2
+            )}, Spending ${snapshot.spending.toFixed(
+              2
+            )}, Remaining ${snapshot.remaining.toFixed(2)}`,
+          },
+        ],
+        structuredContent: {
+          snapshot,
+        },
+        _meta: widgetMeta(monthlySnapshotWidget),
       };
     }
   );

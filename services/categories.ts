@@ -68,9 +68,15 @@ function loadFinanceDataWithBudgets(): FinanceData & { budgets: Budget[] } {
   return JSON.parse(fileContents) as FinanceData & { budgets: Budget[] };
 }
 
-export function getPeriodKey(date: Date, periodType: "month" | "quarter"): string {
+export function getPeriodKey(
+  date: Date,
+  periodType: "month" | "quarter"
+): string {
   if (periodType === "month") {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
   } else {
     const quarter = Math.floor(date.getMonth() / 3) + 1;
     return `${date.getFullYear()}-Q${quarter}`;
@@ -225,7 +231,10 @@ export function calculateTrendComparison(
   );
 
   const vsLastPeriod = calculatePercentageChange(current, lastPeriod);
-  const vsLastQuarter = calculatePercentageChange(current, samePeriodLastQuarter);
+  const vsLastQuarter = calculatePercentageChange(
+    current,
+    samePeriodLastQuarter
+  );
   const vsLastYear = calculatePercentageChange(current, samePeriodLastYear);
 
   return {
@@ -330,16 +339,16 @@ function calculateTrailingAverage(
   // Get spending for last 4 periods (previous period, 2 periods ago, 3 periods ago, 4 periods ago)
   const periods: string[] = [];
   let periodKey = currentPeriod;
-  
+
   for (let i = 0; i < 4; i++) {
     periodKey = getPreviousPeriod(periodKey, periodType);
     periods.push(periodKey);
   }
-  
+
   const spendingAmounts = periods.map((period) =>
     calculatePeriodSpending(period, periodType, categoryId, transactions)
   );
-  
+
   // Calculate average of the 4 periods
   const sum = spendingAmounts.reduce((acc, val) => acc + val, 0);
   return sum / 4;
@@ -387,7 +396,7 @@ export function findSpendingOutliers(
 
     // Calculate change
     const changeAmount = currentPeriodSpending - trailingAverage;
-    
+
     // Calculate percentage change (0 decimal places)
     let percentChange: number;
     if (trailingAverage === 0) {
@@ -439,4 +448,3 @@ export function findSpendingOutliers(
     (a, b) => Math.abs(b.change.percent) - Math.abs(a.change.percent)
   );
 }
-
