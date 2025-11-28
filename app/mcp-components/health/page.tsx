@@ -1,17 +1,22 @@
 "use client";
 
 import { useWidgetProps } from "../hooks/use-widget-props";
+import { HealthSkeleton } from "@/app/components/health-skeleton";
 
-interface HealthProps {
+interface HealthProps extends Record<string, unknown> {
   status: string;
   timestamp: string;
 }
 
 export default function HealthPage() {
-  const props = useWidgetProps<HealthProps>({
+  const { data: props, isLoading } = useWidgetProps<HealthProps>({
     status: "healthy",
     timestamp: new Date().toISOString(),
   });
+
+  if (isLoading) {
+    return <HealthSkeleton />;
+  }
 
   return (
     <div style={{ padding: "16px", fontFamily: "system-ui, sans-serif" }}>
@@ -27,4 +32,3 @@ export default function HealthPage() {
     </div>
   );
 }
-

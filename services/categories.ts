@@ -284,7 +284,7 @@ export function getCategoryTrends(
   // Get budgets for current period to find targets
   const budgetMap = new Map<string, number>();
   data.budgets
-    .filter((budget) => budget.period === currentPeriod)
+    .filter((budget: Budget) => budget.period === currentPeriod)
     .forEach((budget) => {
       budgetMap.set(budget.category, budget.monthly_limit);
     });

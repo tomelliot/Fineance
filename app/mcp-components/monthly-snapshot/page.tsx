@@ -1,15 +1,17 @@
 "use client";
 
 import { useWidgetProps } from "../hooks/use-widget-props";
-import { MonthlySnapshot as MonthlySnapshotComponent } from "@/components/monthly-snapshot";
+import { MonthlySnapshot as MonthlySnapshotComponent } from "@/app/components/monthly-snapshot";
+import { MonthlySnapshotSkeleton } from "@/app/components/monthly-snapshot-skeleton";
 import { MonthlySnapshot as MonthlySnapshotType } from "@/services/snapshots";
 
-interface MonthlySnapshotProps {
+interface MonthlySnapshotProps extends Record<string, unknown> {
   snapshot: MonthlySnapshotType;
+  snapshots?: MonthlySnapshotType[];
 }
 
 export default function MonthlySnapshotPage() {
-  const props = useWidgetProps<MonthlySnapshotProps>({
+  const { data: props, isLoading } = useWidgetProps<MonthlySnapshotProps>({
     snapshot: {
       month: "",
       income: 0,
@@ -44,8 +46,17 @@ export default function MonthlySnapshotPage() {
         },
       },
     },
+    snapshots: [],
   });
 
-  return <MonthlySnapshotComponent snapshot={props.snapshot} />;
-}
+  if (isLoading) {
+    return <MonthlySnapshotSkeleton />;
+  }
 
+  return (
+    <MonthlySnapshotComponent
+      snapshot={props.snapshot}
+      snapshots={props.snapshots}
+    />
+  );
+}

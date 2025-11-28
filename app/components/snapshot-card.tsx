@@ -32,7 +32,7 @@ export function SnapshotCard({ snapshot }: SnapshotCardProps) {
       className="relative flex flex-col gap-4 p-4 bg-card-bg text-card-text rounded-2xl overflow-hidden"
       style={{
         boxShadow:
-          "20px 20px 60px rgba(65, 51, 88, 1), -20px -20px 60px rgba(101, 81, 138, 1)",
+          "20px 20px 60px rgba(15, 15, 15, 1), -20px -20px 60px rgba(45, 45, 45, 1)",
       }}
     >
       {/* Header */}

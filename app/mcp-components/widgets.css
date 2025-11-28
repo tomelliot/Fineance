@@ -19,6 +19,24 @@
   --brand-primary-hover: #6b3410;
   --brand-primary-light: #d4a574;
 
+  /* Card colors - updated to match app background #212121 */
+  --card-bg: #212121;
+  --card-text: #ffffff;
+  --card-secondary-bg: rgba(255, 255, 255, 0.9);
+
+  /* Background color */
+  --background-solid: #212121;
+  --primary-inverted: #212121;
+
+  /* Accent colors - preserved from app */
+  --lime-green: #c3f787;
+  --salmon: #fcce9c;
+  --rose: #fd9c90;
+
+  /* Shadows - updated for dark background */
+  --shadow-button: 0 4px 12px rgba(33, 33, 33, 0.3);
+  --shadow-card: 0 2px 8px rgba(33, 33, 33, 0.15);
+
   /* System colors - use for text, icons, dividers, backgrounds */
   /* These should inherit from ChatGPT's system palette */
 }
@@ -57,7 +75,47 @@ button[data-brand="primary"]:focus,
 }
 
 /**
+ * Card component styles
+ * 
+ * Ensure proper styling for card components with dark background
+ */
+.bg-card-bg {
+  background-color: var(--card-bg);
+}
+
+.text-card-text {
+  color: var(--card-text) !important;
+}
+
+/* Accent color classes for use in components */
+.text-lime-green {
+  color: var(--lime-green) !important;
+}
+
+.text-salmon {
+  color: var(--salmon) !important;
+}
+
+.text-rose {
+  color: var(--rose) !important;
+}
+
+.bg-lime-green {
+  background-color: var(--lime-green);
+}
+
+.bg-salmon {
+  background-color: var(--salmon);
+}
+
+.bg-rose {
+  background-color: var(--rose);
+}
+
+/**
  * Ensure text maintains proper contrast
+ * 
+ * Default to inheriting system colors, but allow explicit overrides
  */
 * {
   /* Ensure text colors inherit from system, not custom colors */

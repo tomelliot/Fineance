@@ -3,3 +3,4 @@
     - Anthropic [Tool Search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
     - Semantic tool selection from [Portkey](https://github.com/Portkey-AI/mcp-tool-filter)
     - Progressive discovery/Smart Navigation tools from [Klavis](https://www.klavis.ai/)
+- don't accidentally include <html> wrappers in the resource that gets served by the MCP server

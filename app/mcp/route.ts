@@ -2,7 +2,7 @@ import { baseURL } from "@/baseUrl";
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import { getCategoryTrends, findSpendingOutliers } from "@/services/categories";
-import { getMonthlySnapshot } from "@/services/snapshots";
+import { getMonthlySnapshot, getMonthlySnapshots } from "@/services/snapshots";
 
 export const revalidate = 0;
 
@@ -35,104 +35,6 @@ function widgetMeta(widget: ContentWidget) {
 
 const handler = createMcpHandler(async (server) => {
   // Register health_check tool
-  server.registerTool(
-    "health_check",
-    {
-      title: "Health Check",
-      description: "Check the health status of the MCP server",
-      inputSchema: z.object({
-        message: z
-          .string()
-          .optional()
-          .describe("Optional message to include in response"),
-      }),
-    },
-    async ({ message }) => {
-      console.log(`[TOOL] health_check`, { message });
-      return {
-        content: [
-          {
-            type: "text",
-            text: `MCP server is healthy${message ? `: ${message}` : ""}`,
-          },
-        ],
-      };
-    }
-  );
-
-  // Health Widget
-  const healthWidgetHtml = await getAppsSdkCompatibleHtml(
-    baseURL,
-    "/mcp-components/health"
-  );
-
-  const healthWidget: ContentWidget = {
-    id: "health",
-    title: "Health Status",
-    templateUri: "ui://widget/health-template.html",
-    invoking: "Checking health...",
-    invoked: "Health check complete",
-    html: healthWidgetHtml,
-    description: "Display health status of the MCP server",
-    widgetDomain: baseURL,
-  };
-
-  server.registerResource(
-    "health-widget",
-    healthWidget.templateUri,
-    {
-      title: healthWidget.title,
-      description: healthWidget.description,
-      mimeType: "text/html+skybridge",
-      _meta: {
-        "openai/widgetDescription": healthWidget.description,
-        "openai/widgetPrefersBorder": false,
-      },
-    },
-    async (uri) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: "text/html+skybridge",
-          text: `<html>${healthWidget.html}</html>`,
-          _meta: {
-            "openai/widgetDescription": healthWidget.description,
-            "openai/widgetPrefersBorder": false,
-            "openai/widgetDomain": healthWidget.widgetDomain,
-          },
-        },
-      ],
-    })
-  );
-
-  // Register show_health tool
-  server.registerTool(
-    "show_health",
-    {
-      title: "Show Health Status",
-      description: "Display health status in a widget",
-      inputSchema: z.object({
-        status: z.string().default("healthy").describe("Health status message"),
-      }),
-      _meta: widgetMeta(healthWidget),
-    },
-    async ({ status }) => {
-      console.log(`[TOOL] show_health`, { status });
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Health status: ${status}`,
-          },
-        ],
-        structuredContent: {
-          status,
-          timestamp: new Date().toISOString(),
-        },
-        _meta: widgetMeta(healthWidget),
-      };
-    }
-  );
 
   // Category Trends Widget
   const categoryTrendsWidgetHtml = await getAppsSdkCompatibleHtml(
@@ -169,7 +71,7 @@ const handler = createMcpHandler(async (server) => {
         {
           uri: uri.href,
           mimeType: "text/html+skybridge",
-          text: `<html>${categoryTrendsWidget.html}</html>`,
+          text: categoryTrendsWidget.html,
           _meta: {
             "openai/widgetDescription": categoryTrendsWidget.description,
             "openai/widgetPrefersBorder": false,
@@ -255,7 +157,7 @@ const handler = createMcpHandler(async (server) => {
         {
           uri: uri.href,
           mimeType: "text/html+skybridge",
-          text: `<html>${monthlySnapshotWidget.html}</html>`,
+          text: monthlySnapshotWidget.html,
           _meta: {
             "openai/widgetDescription": monthlySnapshotWidget.description,
             "openai/widgetPrefersBorder": false,
@@ -284,6 +186,8 @@ const handler = createMcpHandler(async (server) => {
     async ({ month }) => {
       console.log(`[TOOL] get_monthly_snapshot`, { month });
       const snapshot = getMonthlySnapshot(month);
+      // Get last 12 months of snapshots for the carousel
+      const snapshots = getMonthlySnapshots(12);
       return {
         content: [
           {
@@ -299,6 +203,7 @@ const handler = createMcpHandler(async (server) => {
         ],
         structuredContent: {
           snapshot,
+          snapshots,
         },
         _meta: widgetMeta(monthlySnapshotWidget),
       };
@@ -340,7 +245,7 @@ const handler = createMcpHandler(async (server) => {
         {
           uri: uri.href,
           mimeType: "text/html+skybridge",
-          text: `<html>${spendingOutliersWidget.html}</html>`,
+          text: spendingOutliersWidget.html,
           _meta: {
             "openai/widgetDescription": spendingOutliersWidget.description,
             "openai/widgetPrefersBorder": false,

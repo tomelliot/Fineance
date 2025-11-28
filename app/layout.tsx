@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Boldonse, Bricolage_Grotesque } from "next/font/google";
+import localFont from "next/font/local";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import PlausibleProvider from "next-plausible";
 
-const boldonse = Boldonse({
-  subsets: ["latin"],
-  weight: ["400"],
+const boldonse = localFont({
+  src: "../public/fonts/boldonse/Boldonse-Regular.ttf",
   variable: "--font-heading",
   display: "swap",
+  weight: "400",
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -29,10 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${boldonse.variable} ${bricolageGrotesque.variable}`}>
-        <PlausibleProvider domain="bestreads.tomelliot.net">
-          {children}
-        </PlausibleProvider>
+      <body
+        className={`${boldonse.variable} ${bricolageGrotesque.variable} bg-background`}
+      >
+        {/* <PlausibleProvider domain="bestreads.tomelliot.net"> */}
+        {children}
+        {/* </PlausibleProvider> */}
       </body>
     </html>
   );

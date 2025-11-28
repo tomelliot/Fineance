@@ -87,7 +87,10 @@ function calculateTotalSpendingTrend(
   );
 
   const vsLastPeriod = calculatePercentageChange(current, lastPeriod);
-  const vsLastQuarter = calculatePercentageChange(current, samePeriodLastQuarter);
+  const vsLastQuarter = calculatePercentageChange(
+    current,
+    samePeriodLastQuarter
+  );
   const vsLastYear = calculatePercentageChange(current, samePeriodLastYear);
 
   return {
@@ -142,9 +145,9 @@ export function getMonthlySnapshot(month?: string): MonthlySnapshot {
     return txDate >= start && txDate <= end;
   });
 
-  // Calculate income (sum of transactions with type: "income" and positive amounts)
+  // Calculate income (sum of transactions with type: "credit" and positive amounts)
   const income = monthTransactions
-    .filter((tx) => tx.type === "income" && tx.amount > 0)
+    .filter((tx) => tx.type === "credit" && tx.amount > 0)
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   // Calculate spending (sum of transactions with amount < 0, convert to positive)
@@ -198,3 +201,23 @@ export function getMonthlySnapshot(month?: string): MonthlySnapshot {
   };
 }
 
+export function getMonthlySnapshots(count: number = 12): MonthlySnapshot[] {
+  const data = loadFinanceData();
+  const today = new Date("2025-10-31"); // Most recent transaction date
+  const currentMonth = getPeriodKey(today, "month");
+
+  const snapshots: MonthlySnapshot[] = [];
+  let monthKey = currentMonth;
+
+  for (let i = 0; i < count; i++) {
+    const snapshot = getMonthlySnapshot(monthKey);
+    snapshots.push(snapshot);
+
+    // Get previous month
+    monthKey = getPreviousPeriod(monthKey, "month");
+  }
+
+  // Return in reverse order (oldest first, newest last)
+  // This way the carousel can start at the end (most recent)
+  return snapshots.reverse();
+}

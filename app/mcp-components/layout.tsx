@@ -1,4 +1,4 @@
-import "./widgets.css";
+// import "./widgets.css";
 import { ChatGPTSDKBootstrap } from "./chatgpt-sdk-bootstrap";
 
 export default function MCPComponentsLayout({
