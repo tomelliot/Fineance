@@ -33,9 +33,9 @@ export default function RootLayout({
       <body
         className={`${boldonse.variable} ${bricolageGrotesque.variable} bg-background`}
       >
-        {/* <PlausibleProvider domain="bestreads.tomelliot.net"> */}
-        {children}
-        {/* </PlausibleProvider> */}
+        <PlausibleProvider domain="fineance.tomelliot.net">
+          {children}
+        </PlausibleProvider>
       </body>
     </html>
   );
