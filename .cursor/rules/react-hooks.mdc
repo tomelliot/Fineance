@@ -1,0 +1,74 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# React Hooks Guidelines
+
+## File Structure
+- Place hooks in a `hooks` directory
+- Name files as `use-[feature].ts` (e.g., `use-pages.ts`, `use-assets.ts`)
+- Group related hooks in subdirectories (e.g., `hooks/webflow-frontend/`)
+
+## Core Patterns
+
+1. **Type Safety**
+   - Define return types with `T` prefix (e.g., `TUseWebflowFrontend`)
+   - Include loading, error, and data states
+   ```typescript
+   type THookReturn = {
+     isLoading: boolean;
+     data: DataType;
+     error: ErrorType | null;
+   };
+   ```
+
+2. **React Query Integration**
+   - Use `useQuery` for data fetching
+   - Use `useMutation` for data modifications
+   ```typescript
+   const { data, isLoading } = useQuery({
+     queryKey: [queryKeys.feature.data],
+     queryFn: async () => await fetchData(),
+   });
+   ```
+
+3. **Error Handling**
+   - Use try-catch blocks
+   - Integrate with error tracking (Sentry)
+   - Return consistent error states
+   ```typescript
+   try {
+     await mutateAsync(params);
+   } catch (error) {
+     Sentry.captureException(error);
+     return { error: "generic-error" };
+   }
+   ```
+
+4. **Side Effects**
+   - Use `useEffect` for subscriptions
+   - Always return cleanup functions
+   - Use refs to prevent duplicate subscriptions
+   ```typescript
+   useEffect(() => {
+     const unsubscribe = subscribe();
+     return () => unsubscribe();
+   }, []);
+   ```
+
+## Example Hook
+
+```typescript
+export function useCustomHook(): THookReturn {
+  const { data, isLoading } = useQuery({...});
+  const updateData = useCallback(async () => {...}, []);
+  
+  useEffect(() => {
+    const unsubscribe = subscribe();
+    return () => unsubscribe();
+  }, []);
+  
+  return { isLoading, data, error: null };
+}
+```

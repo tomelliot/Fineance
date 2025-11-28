@@ -1,0 +1,13 @@
+---
+description: The technology stack used in this repo
+globs: 
+alwaysApply: false
+---
+# Technology Stack
+
+- **Python Version:** FastMCP Typescript (https://github.com/punkpeye/fastmcp), React (19+), TailwindCSS (v4), Shadcn UI, Radix UI
+- **Dependency Management:** `bun`
+- **Code Formatting:** `eslint`
+- **Testing Framework:** `vitest`
+- **Asynchronous Programming:** Prefer `async` and `await`
+- **Version Control:** `git`

@@ -1,0 +1,156 @@
+---
+description: Project structure and organization for the Bestreads ChatGPT App
+globs: 
+alwaysApply: true
+---
+# Project Structure
+
+This is a Next.js ChatGPT Apps SDK application that serves both as an MCP server and a React component host. The project follows a specific structure to separate concerns between the MCP server, ChatGPT widgets, and the public website.
+
+## Directory Structure
+
+```
+/
+├── app/                          # Next.js app directory
+│   ├── mcp/                      # MCP Server
+│   │   └── route.ts              # MCP handler (tools & resources)
+│   ├── mcp-components/           # ChatGPT Widget Components
+│   │   ├── layout.tsx            # Widget layout (system fonts, SDK bootstrap)
+│   │   ├── widgets.css           # Widget styles (OpenAI design guidelines)
+│   │   ├── chatgpt-sdk-bootstrap.tsx  # SDK initialization
+│   │   ├── hooks/                # ChatGPT SDK hooks
+│   │   │   ├── use-widget-props.ts
+│   │   │   ├── use-widget-state.ts
+│   │   │   ├── use-call-tool.ts
+│   │   │   ├── use-display-mode.ts
+│   │   │   └── ...               # Other SDK hooks
+│   │   ├── [widget-name]/        # Individual widget pages
+│   │   │   └── page.tsx          # Widget component
+│   │   └── use-brand-colors.ts   # Brand color utilities
+│   ├── components/               # Public website components
+│   │   └── [component].tsx       # Regular Next.js components
+│   ├── page.tsx                  # Website landing page
+│   ├── layout.tsx                # Website layout (custom fonts)
+│   └── globals.css               # Global website styles
+├── services/                     # Service layer
+│   ├── [service-name].ts         # External API integrations
+│   └── ...                       # Business logic services
+├── docs/                         # Documentation
+│   ├── openai/                   # OpenAI/ChatGPT SDK docs
+│   └── ...                       # Other documentation
+├── public/                       # Static assets
+└── baseUrl.ts                    # Base URL configuration
+```
+
+## Key Directories
+
+### `app/mcp/`
+- **Purpose**: MCP server that exposes tools and resources to ChatGPT
+- **Key File**: `route.ts` - Contains tool definitions and resource handlers
+- **Pattern**: Use `createMcpHandler` to register tools and resources
+- **Tools**: Return `structuredContent` that gets passed to widgets
+- **Resources**: Serve HTML for widget components via `templateUri`
+
+### `app/mcp-components/`
+- **Purpose**: React components that render inside ChatGPT conversations
+- **Layout**: `layout.tsx` enforces OpenAI design guidelines (system fonts, system colors)
+- **Hooks**: Located in `mcp-components/hooks/` - access ChatGPT SDK APIs
+- **Widgets**: Each widget is a Next.js page route (e.g., `search-results/page.tsx`)
+- **Styling**: `widgets.css` contains widget-specific styles following OpenAI guidelines
+- **Important**: These components run in ChatGPT's iframe, not the public website
+
+### `app/components/`
+- **Purpose**: Display components from both the public website and MCP widgets
+- **Usage**: 
+  - Components used in `app/page.tsx` and other public pages
+  - Display-only components extracted from MCP widgets for reusability and testability
+- **Styling**: Can use custom fonts and brand colors (unlike mcp-components)
+- **Pattern**: Extract pure display logic from MCP components to enable reuse across both contexts
+
+### `services/`
+- **Purpose**: Service layer for external API integrations and business logic
+- **Pattern**: Export async functions that handle API calls
+- **Example**: `search-books.ts`, `open-library-api.ts`
+
+## File Naming Conventions
+
+- **MCP Tools**: Use snake_case for tool IDs (e.g., `search_books`)
+- **Widget Components**: Use kebab-case for directory names (e.g., `search-results/`)
+- **Hooks**: Use kebab-case with `use-` prefix (e.g., `use-widget-props.ts`)
+- **Services**: Use kebab-case (e.g., `search-books.ts`)
+
+## Data Flow
+
+1. **Tool → Component**: Tools return `structuredContent` → Components read via `useWidgetProps()`
+2. **Component → Tool**: Components call tools via `useCallTool()` hook
+3. **Widget State**: Components persist state via `useWidgetState()` (visible to ChatGPT)
+
+## Important Constraints
+
+- **MCP Components**: Must follow OpenAI design guidelines (system fonts, system colors, brand colors only on primary buttons)
+- **Website Components**: Can use custom fonts and full brand styling
+- **Hooks Location**: ChatGPT SDK hooks are in `app/mcp-components/hooks/`, not `app/hooks/`
+- **Widget HTML**: Served via MCP resources, not direct Next.js routes
+
+## Adding New Features
+
+### Adding a New Tool + Widget
+
+1. **Define Tool** in `app/mcp/route.ts`:
+   - Register tool with Zod schema
+   - Return `structuredContent` with widget metadata
+   - Register corresponding resource with `templateUri`
+
+2. **Create Widget Component** in `app/mcp-components/[widget-name]/page.tsx`:
+   - Use `useWidgetProps()` to read tool data
+   - Follow OpenAI design guidelines
+   - Use hooks from `app/mcp-components/hooks/`
+   - **Component Separation**: Extract display logic to `app/components/[component-name].tsx` to make components more testable
+     - Keep data fetching (e.g., `useWidgetProps()`) in the MCP component
+     - Move pure display/rendering logic to the shared component
+     - Pass data as props to the shared component
+
+3. **Add Service** (if needed) in `services/[service-name].ts`:
+   - Export async functions for API calls
+   - Import and use in tool handlers
+
+### Adding a New Website Component
+
+1. Create component in `app/components/[component-name].tsx`
+2. Use in `app/page.tsx` or other public pages
+3. Can use custom fonts and full brand styling
+
+### Component Separation Pattern
+
+When creating MCP widgets that may be reused elsewhere:
+
+1. **Extract Display Component** to `app/components/[component-name].tsx`:
+   - Contains only rendering/display logic
+   - Accepts data via props (no data fetching)
+   - Can include formatting utilities (e.g., `formatDistance`, `formatTime`)
+   - Reusable in both MCP widgets and public pages
+
+2. **Keep Data Fetching** in `app/mcp-components/[widget-name]/page.tsx`:
+   - Uses `useWidgetProps()` or other MCP-specific hooks
+   - Handles data transformation/validation
+   - Passes processed data to the display component
+
+3. **Example Pattern**:
+   ```typescript
+   // app/components/activities-list.tsx (display only)
+   export function ActivitiesList({ activities, total }: Props) {
+     // Pure rendering logic
+   }
+   
+   // app/mcp-components/activities-list/page.tsx (data fetching)
+   export default function ActivitiesListPage() {
+     const props = useWidgetProps<ActivitiesListProps>({...});
+     return <ActivitiesList activities={props.activities} total={props.total} />;
+   }
+   
+   // app/test/page.tsx (server-side data fetching)
+   export default async function TestPage() {
+     const activities = await getLatestActivities();
+     return <ActivitiesList activities={activities} />;
+   }
+   ```

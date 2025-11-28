@@ -1,0 +1,5 @@
+- chatgpt renders the response, but at the end of the conversation turn, and shortly after that the container gets flushed
+- MCP doesn't support dynamically presenting tools to the client. so you can't provide the set of tools that are relevant only to the current context and then progressively add/remove tools as you go. some solutions:
+    - Anthropic [Tool Search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
+    - Semantic tool selection from [Portkey](https://github.com/Portkey-AI/mcp-tool-filter)
+    - Progressive discovery/Smart Navigation tools from [Klavis](https://www.klavis.ai/)

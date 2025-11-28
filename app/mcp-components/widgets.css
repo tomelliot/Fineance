@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/**
+ * ChatGPT Widget Component Styles
+ * 
+ * These styles follow OpenAI's design guidelines for ChatGPT Apps SDK components.
+ * See docs/openai/design-guidelines .md for full guidelines.
+ * 
+ * Key principles:
+ * - Use system fonts (inherit platform-native fonts)
+ * - Use system colors for text, icons, and spatial elements
+ * - Brand colors are allowed ONLY on primary buttons
+ * - Maintain WCAG AA contrast ratios
+ */
+
+:root {
+  /* Brand colors - use ONLY on primary buttons per design guidelines */
+  --brand-primary: #8b4513;
+  --brand-primary-hover: #6b3410;
+  --brand-primary-light: #d4a574;
+
+  /* System colors - use for text, icons, dividers, backgrounds */
+  /* These should inherit from ChatGPT's system palette */
+}
+
+body {
+  /* Use system font stack - no custom fonts per design guidelines */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Reset any custom backgrounds - ChatGPT provides the background */
+  background: transparent;
+  color: inherit;
+}
+
+/**
+ * Brand button styles
+ * 
+ * Per design guidelines: "Use brand accent colors on primary buttons inside app display modes"
+ */
+button[data-brand="primary"],
+.btn-primary {
+  background-color: var(--brand-primary);
+  color: white;
+  border: none;
+}
+
+button[data-brand="primary"]:hover,
+.btn-primary:hover {
+  background-color: var(--brand-primary-hover);
+}
+
+button[data-brand="primary"]:focus,
+.btn-primary:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/**
+ * Ensure text maintains proper contrast
+ */
+* {
+  /* Ensure text colors inherit from system, not custom colors */
+  color: inherit;
+}
+
+/**
+ * Accessibility: Support text resizing
+ */
+* {
+  /* Allow text to scale without breaking layouts */
+  max-width: 100%;
+}
