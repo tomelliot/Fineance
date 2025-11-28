@@ -19,8 +19,8 @@ const bricolageGrotesque = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "4-Fineance - Personal Financial Planning",
-  description: "A ChatGPT App for personal financial planning",
+  title: "Fineance - Plan your finances with ChatGPT",
+  description: "Plan your finances with ChatGPT",
 };
 
 export default function RootLayout({
